@@ -22,7 +22,7 @@ def plot_matrix(matrix, title, filename, square=True):
     plt.savefig(out_path + filename, bbox_inches='tight', dpi=500)
     plt.close()
 
-def make_avg_plots(name_indx, path):
+def make_avg_plots(name_indx, regions, path):
     """
     Creates plots showing the average predicted FC for a specific region
     after virtual resection.
@@ -30,22 +30,6 @@ def make_avg_plots(name_indx, path):
    # Instantiate the output paths.
     out_path = path + 'fig1'
     mean_predB = get_mean_predB(path)
-
-    #Declare the reiong indices.
-    regions = {'Thalamus': (0, 7), 
-            'Caudate': (1, 8), 
-            'Putamen': (2, 9),
-            'Pallidum': (3, 10),
-            'Accumbens': (6, 13), 
-            'Amygdala': (5, 12), 
-            'Hypocampus': (4, 11),
-            'Sommatosensory':list(range(25, 30)) + list(range(75, 82)), 
-            'Visual Cortex': list(range(16, 24)) + list(range(67, 74)), 
-            'DAN': list(range(31, 38)) + list(range(83, 89)), 
-            'SAN': list(range(39, 45)) + list(range(90, 94)), 
-            'Limbic': list(range(46, 48)) + list(range(95, 96)), 
-            'Cont': list(range(49, 52)) + list(range(97, 105)), 
-            'DMN': list(range(53, 65)) + list(range(106, 116))}
     
     # Instantiate this list to declare the order in which to iterate over the regions.
     labels = ['Thalamus', 'Caudate', 'Putamen', 'Pallidum', 'Accumbens', 'Amygdala',\
@@ -82,7 +66,7 @@ def make_avg_plots(name_indx, path):
     np.fill_diagonal(avg_matrix, 0)
     plot_matrix(avg_matrix, f'{labels[name_indx]}, Diag = 0', "0")
 
-def make_signed_plots(region_name, name_indx):
+def make_signed_plots(region_name, regions, name_indx):
     """
     Creates resection plots showing only the negative or positive predicted FC for
     each region/ system.
@@ -90,22 +74,6 @@ def make_signed_plots(region_name, name_indx):
     # Instantiate the output paths.
     out_path = f'group_level/log10_SC/virt_resects_log10_SC/{region_name}/fig1'
     mean_predB = get_mean_predB(region_name)
-
-    #Declare the reiong indices.
-    regions = {'Thalamus': (0, 7), 
-            'Caudate': (1, 8), 
-            'Putamen': (2, 9), 
-            'Pallidum': (3, 10),
-            'Accumbens': (6, 13), 
-            'Amygdala': (5, 12), 
-            'Hypocampus': (4, 11),
-            'Sommatosensory':list(range(25, 30)) + list(range(75, 82)), 
-            'Visual Cortex': list(range(16, 24)) + list(range(67, 74)), 
-            'DAN': list(range(31, 38)) + list(range(83, 89)), 
-            'SAN': list(range(39, 45)) + list(range(90, 94)), 
-            'Limbic': list(range(46, 48)) + list(range(95, 96)), 
-            'Cont': list(range(49, 52)) + list(range(97, 105)), 
-            'DMN': list(range(53, 65)) + list(range(106, 116))}
     
     # Instantiate this list to declare the order in which to iterate over the regions.
     labels = ['Thalamus', 'Caudate', 'Putamen', 'Pallidum', 'Accumbens', 'Amygdala',\
@@ -171,10 +139,25 @@ def main():
             'Hypocampus','Sommatosensory', 'Visual Cortex', 'DAN', 'SAN', 'Limbic', 'Cont', \
             'DMN']
     
+    regions_dict = {'Thalamus': (0, 7), 
+            'Caudate': (1, 8), 
+            'Putamen': (2, 9),
+            'Pallidum': (3, 10),
+            'Accumbens': (6, 13), 
+            'Amygdala': (5, 12), 
+            'Hypocampus': (4, 11),
+            'Sommatosensory':list(range(25, 30)) + list(range(75, 82)), 
+            'Visual Cortex': list(range(16, 24)) + list(range(67, 74)), 
+            'DAN': list(range(31, 38)) + list(range(83, 89)), 
+            'SAN': list(range(39, 45)) + list(range(90, 94)), 
+            'Limbic': list(range(46, 48)) + list(range(95, 96)), 
+            'Cont': list(range(49, 52)) + list(range(97, 105)), 
+            'DMN': list(range(53, 65)) + list(range(106, 116))}
+    
     # For each region, make the signed and average plots
     for (name_indx, region) in enumerate(regions):
         PATH = f"subject_level/virt_resects_log10_SC/{region}/"
-        make_signed_plots(region, name_indx)
-        make_avg_plots(name_indx, PATH)
+        make_signed_plots(region, regions_dict, name_indx)
+        make_avg_plots(name_indx, regions_dict, PATH)
 
 main()
