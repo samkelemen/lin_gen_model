@@ -9,7 +9,7 @@ from sklearn.linear_model import Lasso
 from statsmodels.regression.linear_model import OLS
 
 from data_manager import Writer_Reader
-from lin_gen_model_new import Subject
+from lin_gen_model import Subject
 
 class SubjectLevelModel(Subject, Writer_Reader):
     def __init__(self, id, output_path, log=False, log_base=10):
