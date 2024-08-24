@@ -11,6 +11,17 @@ def get_mean_predB(path):
     path = path + 'mean_predB'
     return get_secondary_data(path)
 
+def plot_matrix(matrix, title, filename, square=True):
+    """
+    Plots given resection matrix.
+    """
+    sns.color_palette("vlag", n_colors=8, as_cmap=True)
+    ax = sns.heatmap(matrix, center=0, cmap="vlag", square=square, 
+                     xticklabels=labels, yticklabels=labels, linewidth=0.5, linecolor='black')
+    ax.set_title(title)
+    plt.savefig(out_path + filename, bbox_inches='tight', dpi=500)
+    plt.close()
+
 def make_avg_plots(name_indx, path):
     """
     Creates plots showing the average predicted FC for a specific region
@@ -59,32 +70,17 @@ def make_avg_plots(name_indx, path):
 
             mean = mean / num_indices
             avg_matrix[i][j] = mean / 2 # divide by two because the algorithm double counts
-    
-    # Create the plot.
-    sns.color_palette("vlag", n_colors=8, as_cmap=True)
-    ax = sns.heatmap(avg_matrix, center=0, cmap="vlag", square=True, \
-                xticklabels=labels, yticklabels=labels, linewidth=0.5, linecolor='black')
-    ax.set_title(labels[name_indx])
-    plt.savefig(out_path, bbox_inches='tight', dpi=500)
-    plt.close()
 
+    # Create the plot.
+    plot_matrix(avg_matrix, labels[name_indx], "")
+    
     # Diagonal values matrix.
     diags = np.diagonal(avg_matrix).reshape((num_regions, 1))
-    sns.color_palette("vlag", n_colors=8, as_cmap=True)
-    ax = sns.heatmap(diags, center=0, cmap="vlag", square=False, \
-                xticklabels=labels, yticklabels=labels, linewidth=0.5, linecolor='black')
-    ax.set_title(f'{labels[name_indx]} Diagonal')
-    plt.savefig(out_path + "diag", bbox_inches='tight', dpi=500)
-    plt.close()
-
-    #Positive  matrix with diagonal values = 0.
+    plot_matrix(diags, f'{labels[name_indx]} Diagonal', "diag", square=False)
+    
+    # Matrix with diagonal values = 0.
     np.fill_diagonal(avg_matrix, 0)
-    sns.color_palette("vlag", n_colors=8, as_cmap=True)
-    ax = sns.heatmap(avg_matrix, center=0, cmap="vlag", square=True, \
-                xticklabels=labels, yticklabels=labels, linewidth=0.5, linecolor='black')
-    ax.set_title(f'{labels[name_indx]}, Diag = 0')
-    plt.savefig(out_path + "0", bbox_inches='tight', dpi=500)
-    plt.close()
+    plot_matrix(avg_matrix, f'{labels[name_indx]}, Diag = 0', "0")
 
 def make_signed_plots(region_name, name_indx):
     """
@@ -141,59 +137,30 @@ def make_signed_plots(region_name, name_indx):
             neg_mean = neg_mean / num_indices
             pos_avg_matrix[i][j] = pos_mean / 2
             neg_avg_matrix[i][j] = neg_mean / 2
+
+    # Output the plots.
+    # Positive matrix
+    plot_matrix(pos_avg_matrix, f'{labels[name_indx]} [Positive]', "pos")
     
-    # Create the plots.
-    # Positive matrix.
-    sns.color_palette("vlag", n_colors=8, as_cmap=True)
-    ax = sns.heatmap(pos_avg_matrix,center=0, cmap="vlag", square=True, \
-                xticklabels=labels, yticklabels=labels, linewidth=0.5, linecolor='black')
-    ax.set_title(f'{labels[name_indx]} [Positive]')
-    plt.savefig(out_path + "pos", bbox_inches='tight', dpi=500)
-    plt.close()
-
-    # Positive diagonal values matrix.
+    # Positive diagonal values matrix
     pos_diags = np.diagonal(pos_avg_matrix).reshape((num_regions, 1))
-    sns.color_palette("vlag", n_colors=8, as_cmap=True)
-    ax = sns.heatmap(pos_diags,center=0, cmap="vlag", square=False, \
-                xticklabels=labels, yticklabels=labels, linewidth=0.5, linecolor='black')
-    ax.set_title(f'{labels[name_indx]} Diagonal [Positive]')
-    plt.savefig(out_path + "pos_diag", bbox_inches='tight', dpi=500)
-    plt.close()
-
-    #Positive  matrix with diagonal values = 0.
+    plot_matrix(pos_diags, f'{labels[name_indx]} Diagonal [Positive]', "pos_diag", square=False)
+    
+    # Positive matrix with diagonal values = 0
     np.fill_diagonal(pos_avg_matrix, 0)
-    sns.color_palette("vlag", n_colors=8, as_cmap=True)
-    ax = sns.heatmap(pos_avg_matrix, center=0, cmap="vlag", square=True, \
-                xticklabels=labels, yticklabels=labels, linewidth=0.5, linecolor='black')
-    ax.set_title(f'{labels[name_indx]} [Positive], Diag = 0')
-    plt.savefig(out_path + "pos0", bbox_inches='tight', dpi=500)
-    plt.close()
-
-    # Negative matrix.
-    sns.color_palette("vlag", n_colors=8, as_cmap=True)
-    ax = sns.heatmap(neg_avg_matrix,center=0, cmap="vlag", square=True, \
-                xticklabels=labels, yticklabels=labels, linewidth=0.5, linecolor='black')
-    ax.set_title(f'{labels[name_indx]} [Negative]')
-    plt.savefig(out_path + "neg", bbox_inches='tight', dpi=500)
-    plt.close()
-
-    # Negative diagonal values matrix.
+    plot_matrix(pos_avg_matrix, f'{labels[name_indx]} [Positive], Diag = 0', "pos0")
+    
+    # Negative matrix
+    plot_matrix(neg_avg_matrix, f'{labels[name_indx]} [Negative]', "neg")
+    
+    # Negative diagonal values matrix
     neg_diags = np.diagonal(neg_avg_matrix).reshape((num_regions, 1))
-    sns.color_palette("vlag", n_colors=8, as_cmap=True)
-    ax = sns.heatmap(neg_diags, center=0, cmap="vlag", square=False, \
-                xticklabels=labels, yticklabels=labels, linewidth=0.5, linecolor='black')
-    ax.set_title(f'{labels[name_indx]} Diagonal [Negative]')
-    plt.savefig(out_path + "neg_diag", bbox_inches='tight', dpi=500)
-    plt.close()
-
-    # Negative matrix with diagaonl values = 0.
+    plot_matrix(neg_diags, f'{labels[name_indx]} Diagonal [Negative]', "neg_diag", square=False)
+    
+    # Negative matrix with diagonal values = 0
     np.fill_diagonal(neg_avg_matrix, 0)
-    sns.color_palette("vlag", n_colors=8, as_cmap=True)
-    ax = sns.heatmap(neg_avg_matrix,center=0, cmap="vlag", square=True, \
-                xticklabels=labels, yticklabels=labels, linewidth=0.5, linecolor='black')
-    ax.set_title(f'{labels[name_indx]} [Negative], Diag = 0')
-    plt.savefig(out_path + "neg0", bbox_inches='tight', dpi=500)
-    plt.close()
+    plot_matrix(neg_avg_matrix, f'{labels[name_indx]} [Negative], Diag = 0', "neg0")
+
 
 def main():
     """
