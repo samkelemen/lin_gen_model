@@ -109,7 +109,7 @@ def group_level_resections(results_dir, out_dir, regions_dict, resect_rules=Fals
         else:
             resection_output(pred_B_stack, out_path)
 
-def subject_level_predictions(results_dir, out_dir, regions_dict, resect_rules=False):
+def subject_level_resections(results_dir, out_dir, regions_dict, resect_rules=False):
     """
     Computes subject level resections. By default, resections are done on SC,
     but if resect_rules is set to True, resections will be carried out on 
@@ -176,7 +176,7 @@ def main():
     RESULTS_DIR = 'path'
     OUT_DIR = 'path'
 
-    subject_level_predictions(RESULTS_DIR, OUT_DIR, regions)
+    subject_level_resections(RESULTS_DIR, OUT_DIR, regions)
     #group_level_resections(RESULTS_DIR, OUT_DIR, regions)
 
 if __name__ == "__main__":
