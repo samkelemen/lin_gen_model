@@ -85,6 +85,19 @@ def remove_medial_wall(matrix):
     matrix = np.delete(matrix, 14, 1)
     return matrix
 
+def get_secondary_data(path):
+    """
+    Reads matrices created by our scripts (Not from the 
+    dataset).
+    """
+    data = []
+    with open(path, 'r') as file:
+        for line in file:
+            row = [float(value) for value in line.strip().split(' ')]
+            data.append(row)
+    data = np.array(data)
+    return data
+
 
 class Writer_Reader:
     def __init__(self, base_path, log=False, log_base=10):
@@ -182,8 +195,9 @@ class Writer_Reader:
         path = self.output_path + f'matrices/predictedB/predicted_B{id}'
         return self.get_secondary_data(path)
     
-    def get_null_fc(self, id, null_num):
+    def get_fc_null(self, id, null_num):
         path = self.base_path + f'fc_nulls/{id}/null_B_{null_num}'
+        print(path, flush=True)
         if not os.path.exists(path):
             print(f'fc null for id: {id}, null_num: {null_num} not found.')
             return None
