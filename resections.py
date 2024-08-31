@@ -1,7 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-from lin_gen_model import heatmaps, check_paths, get_secondary_data
+from data_manager import heatmaps, check_paths, get_secondary_data
 
 
 def create_histograms(matrix_stack):
@@ -45,19 +45,19 @@ def keep_indices(matrix, indices_to_keep):
         kept_matrix[:, indx] = matrix[:, indx]
     return kept_matrix
 
-def resection_output(pred_B_stack, path, resected_rules=None, histograms=False):
+def resection_output(predicted_fc_stack, path, resected_rules=None, histograms=False):
     """ Outputs histograms for pred FC and mean predicted FC, and optionally
     rules distributions and resected_rules or resected X."""
     # If histograms is true, output predB histograms.
     if histograms:
-        create_histograms(pred_B_stack)
+        create_histograms(predicted_fc_stack)
         plt.savefig(path + 'predB_distributions', dpi=300)
         plt.close()
 
     # Outputs mean predicted FC heatmap
-    mean_pred_B = np.mean(pred_B_stack, axis=0)
-    heatmaps(mean_pred_B, path + 'mean_predB', type='predfc')
-    np.savetxt(path + 'mean_predB', mean_pred_B)
+    mean_predicted_fc = np.mean(predicted_fc_stack, axis=0)
+    heatmaps(mean_predicted_fc, path + 'mean_predB', type='predfc')
+    np.savetxt(path + 'mean_predB', mean_predicted_fc)
 
     # If resected_rules is provided, output the heatmap
     if resected_rules:
@@ -71,7 +71,7 @@ def group_level_resections(results_dir, out_dir, regions_dict, resect_rules=Fals
     the rule set.
     """
     # Instantiate the ids and read in the group rules
-    ids = [num + 1 for num in range(50)]
+    subject_ids = [num + 1 for num in range(50)]
     rules = get_secondary_data(results_dir + 'fitted_O/fitted_ONone')
 
     # Iterates over each set of ranges
@@ -85,49 +85,49 @@ def group_level_resections(results_dir, out_dir, regions_dict, resect_rules=Fals
             resected_rules = keep_indices(rules, indxs)
         
         # List of predicted FC matrices that will be stacked into one 3d array later
-        pred_B_to_stack = []
+        predicted_fc_to_stack = []
 
         # Iterate over each subject and add the resected rules and new prediction to the stacks.
-        for id in ids:
-            X = get_secondary_data(results_dir + f'X/X{id}')
+        for subject_id in subject_ids:
+            sc = get_secondary_data(results_dir + f'X/X{subject_id}')
 
             # If resect_rules is False, make SC resections, and make predictions for FC. Else use resected rules.
             if not resect_rules:
-                resected_X = keep_indices(X, indxs)
-                pred_B = resected_X @ rules @ resected_X 
+                resected_sc = keep_indices(sc, indxs)
+                predicted_fc = resected_sc @ rules @ resected_sc
             else:
-                pred_B = X @ resected_rules @ X
+                predicted_fc = sc @ resected_rules @ sc
 
             # Append the predicted FC to the list.
-            pred_B_to_stack.append(pred_B)
+            predicted_fc_to_stack.append(predicted_fc)
 
         # Create the 3d array and output a subset of histograms, mean predB, resected rules, resected X, depending on settings.
-        pred_B_stack = np.stack(pred_B_to_stack)
+        predicted_fc_stack = np.stack(predicted_fc_to_stack)
 
         if resect_rules:
-            resection_output(pred_B_stack, out_path, resected_rules=rules)
+            resection_output(predicted_fc_stack, out_path, resected_rules=rules)
         else:
-            resection_output(pred_B_stack, out_path)
+            resection_output(predicted_fc_stack, out_path)
 
-def subject_level_resections(results_dir, out_dir, regions_dict, resect_rules=False):
+def subject_level_predictions(results_dir, out_dir, regions_dict, resect_rules=False):
     """
     Computes subject level resections. By default, resections are done on SC,
     but if resect_rules is set to True, resections will be carried out on 
     the rule set.
     """
     # Iterate over each subjects' individually fit rule set.
-    ids = [num + 1 for num in range(50)]
+    subject_ids = [num + 1 for num in range(50)]
 
     # Iterate over each of the regions.
     for (region, indxs) in regions_dict.items():
         # List of predicted FC matrices that will be stacked into one 3d array later
-        pred_B_to_stack = []
+        predicted_fc_to_stack = []
 
         # iterate over each subject's id
-        for id in ids:
+        for subject_id in subject_ids:
             # Read in the SC and rules matrix for the given subject id    
-            X = get_secondary_data(results_dir + f'X/X{id}')
-            rules = get_secondary_data(results_dir + f'fitted_O/fitted{id}')
+            sc = get_secondary_data(results_dir + f'X/X{subject_id}')
+            rules = get_secondary_data(results_dir + f'fitted_O/fitted_O{subject_id}')
 
             # Make sure output path exists.
             out_path = out_dir + f'{region}/'
@@ -136,21 +136,21 @@ def subject_level_resections(results_dir, out_dir, regions_dict, resect_rules=Fa
             # If resected_rules is True, resect the rules. Else resect X. Predict FC.
             if resect_rules:
                 resected_rules = keep_indices(rules, indxs)
-                predicted_B = X @ resected_rules @ X
+                predicted_fc = sc @ resected_rules @ sc
             else:
-                resected_X = keep_indices(X, indxs)
-                predicted_B = resected_X @ rules @ resected_X
+                resected_sc = keep_indices(sc, indxs)
+                predicted_fc = resected_sc @ rules @ resected_sc
             
             # Add predicted B to the list
-            pred_B_to_stack.append(predicted_B)
+            predicted_fc_to_stack.append(predicted_fc)
         
         # Create the 3d array and output a subset of histograms, mean predB, resected rules, resected X, depending on settings.
-        pred_B_stack = np.stack(pred_B_to_stack)
+        predicted_fc_stack = np.stack(predicted_fc_to_stack)
 
         if resect_rules:
-            resection_output(pred_B_stack, out_path)
+            resection_output(predicted_fc_stack, out_path)
         else:
-            resection_output(pred_B_stack, out_path)
+            resection_output(predicted_fc_stack, out_path)
 
 def main():
     """
@@ -173,10 +173,10 @@ def main():
     }
 
     # These paths need to be set!!
-    RESULTS_DIR = 'path'
-    OUT_DIR = 'path'
+    results_dir = 'subject_level_output_standard_lasso/matrices/'
+    outdir = 'sl_resects_standard/'
 
-    subject_level_resections(RESULTS_DIR, OUT_DIR, regions)
+    subject_level_predictions(results_dir, outdir, regions, resect_rules=True)
     #group_level_resections(RESULTS_DIR, OUT_DIR, regions)
 
 if __name__ == "__main__":
