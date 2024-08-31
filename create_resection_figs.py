@@ -1,133 +1,179 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
-from lin_gen_model import get_secondary_data
+import matplotlib.colors as mcolors
 
-def get_mean_predB(path):
-    """
-    Gets the mean predicted FC for a resection. In the path definition,
-    'mean_predB' may need to be changed to 'predB'.
-    """
-    path = path + 'mean_predB'
-    return get_secondary_data(path)
+from data_manager import get_secondary_data
 
-def plot_matrix(matrix, title, filename, square=True):
-    """
-    Plots given resection matrix.
-    """
-    sns.color_palette("vlag", n_colors=8, as_cmap=True)
-    ax = sns.heatmap(matrix, center=0, cmap="vlag", square=square, 
-                     xticklabels=labels, yticklabels=labels, linewidth=0.5, linecolor='black')
-    ax.set_title(title)
-    plt.savefig(out_path + filename, bbox_inches='tight', dpi=500)
-    plt.close()
 
-def make_avg_plots(name_indx, regions, path):
-    """
-    Creates plots showing the average predicted FC for a specific region
-    after virtual resection.
-    """
-   # Instantiate the output paths.
-    out_path = path + 'fig1'
-    mean_predB = get_mean_predB(path)
-    
-    # Instantiate this list to declare the order in which to iterate over the regions.
-    labels = ['Thalamus', 'Caudate', 'Putamen', 'Pallidum', 'Accumbens', 'Amygdala',\
-            'Hypocampus','Sommatosensory', 'Visual Cortex', 'DAN', 'SAN', 'Limbic', 'Cont', \
-            'DMN']
+class CreateResectionFigs:
+    def __init__(self, path):
+        self.path = path
 
-     # Create zero matrices to then edit.
-    num_regions = len(labels)
-    avg_matrix = np.zeros(shape=(num_regions, num_regions))
+    def get_mean_predicted_fc(self):
+        """
+        Gets the mean predicted FC matrix for a resection. In the path definition,
+        'mean_predB' may need to be changed to 'predB'.
+        """
+        path = self.path + 'mean_predB'
+        return get_secondary_data(path)
 
-    # For each region, take the average and add it to the mean matrix.
-    for (i, region1) in enumerate(labels):
-        for (j, region2) in enumerate(labels):
-            region1_indices = regions[region1]
-            region2_indices = regions[region2]
-            num_indices = len(region1_indices) * len(region2_indices)
-            
-            mean = 0
-            for index1 in region1_indices:
-                for index2 in region2_indices:
-                    mean += mean_predB[index1][index2]
+    def plot_matrix(self, matrix, title, output_path, labels, diag_info=None):
+        """
+        Plots given resection matrix.
+        """
+        if not diag_info:
+            cmap='vlag'
+            ax = sns.heatmap(matrix, center=0, cmap="vlag", square=True, xticklabels=labels, yticklabels=labels, linewidth=0.5, linecolor='black')
+        elif diag_info == 'neg':
+            cmap = mcolors.LinearSegmentedColormap.from_list("", ["#2F4F7F", "white"])
+            ax = sns.heatmap(matrix, vmin=-1, cmap=cmap, square=True, yticklabels=labels, linewidth=0.5, linecolor='black')
+            plt.xticks(ticks=[], labels=[])
+        elif diag_info == 'pos':
+            cmap = mcolors.LinearSegmentedColormap.from_list("", ["white", "#8B0A1A"])
+            ax = sns.heatmap(matrix, vmin=0, cmap=cmap, square=True, yticklabels=labels, linewidth=0.5, linecolor='black')
+            plt.xticks(ticks=[], labels=[])
 
-            mean = mean / num_indices
-            avg_matrix[i][j] = mean / 2 # divide by two because the algorithm double counts
+        ax.set_title(title)
+        plt.savefig(output_path, bbox_inches='tight', dpi=500)
+        plt.close()
 
-    # Create the plot.
-    plot_matrix(avg_matrix, labels[name_indx], "")
-    
-    # Diagonal values matrix.
-    diags = np.diagonal(avg_matrix).reshape((num_regions, 1))
-    plot_matrix(diags, f'{labels[name_indx]} Diagonal', "diag", square=False)
-    
-    # Matrix with diagonal values = 0.
-    np.fill_diagonal(avg_matrix, 0)
-    plot_matrix(avg_matrix, f'{labels[name_indx]}, Diag = 0', "0")
-
-def make_signed_plots(region_name, regions, name_indx):
-    """
-    Creates resection plots showing only the negative or positive predicted FC for
-    each region/ system.
-    """
+    def make_avg_plots(self, name_indx, regions, set_diag_to_zero=False):
+        """
+        Creates plots showing the average predicted FC for a specific region
+        after virtual resection.
+        """
     # Instantiate the output paths.
-    out_path = f'group_level/log10_SC/virt_resects_log10_SC/{region_name}/fig1'
-    mean_predB = get_mean_predB(region_name)
-    
-    # Instantiate this list to declare the order in which to iterate over the regions.
-    labels = ['Thalamus', 'Caudate', 'Putamen', 'Pallidum', 'Accumbens', 'Amygdala',\
-            'Hypocampus','Sommatosensory', 'Visual Cortex', 'DAN', 'SAN', 'Limbic', 'Cont', \
-            'DMN']
-    
-    # Create zero matrices to then edit.
-    num_regions = len(labels)
-    pos_avg_matrix = np.zeros(shape=(num_regions, num_regions))
-    neg_avg_matrix = np.zeros(shape=(num_regions, num_regions))
+        output_path = self.path + 'fig1'
+        mean_predicted_fc= self.get_mean_predicted_fc()
+        
+        # Instantiate this list to declare the order in which to iterate over the regions.
+        labels = ['Thalamus', 'Caudate', 'Putamen', 'Pallidum', 'Accumbens', 'Amygdala',\
+                'Hypocampus','Sommatosensory', 'Visual Cortex', 'DAN', 'SAN', 'Limbic', 'Cont', \
+                'DMN']
 
-    # For each region, take the average of positives and negatives and add those values to the corresponding mean matrices.
-    for (i, region1) in enumerate(labels):
-        for (j, region2) in enumerate(labels):
-            region1_indices = regions[region1]
-            region2_indices = regions[region2]
-            num_indices = len(region1_indices) * len(region2_indices)
+        # Create zero matrices to then edit.
+        num_regions = len(labels)
+        avg_matrix = np.zeros(shape=(num_regions, num_regions))
 
-            pos_mean = 0
-            neg_mean = 0
-            for index1 in region1_indices:
-                for index2 in region2_indices:
-                    if mean_predB[index1][index2] > 0:
-                        pos_mean += mean_predB[index1][index2]
-                    elif mean_predB[index1][index2] < 0:
-                        neg_mean += mean_predB[index1][index2]
+        # Iterate over the indices of the subregions in region1 and region2
+        for (i, region1) in enumerate(labels):
+            for (j, region2) in enumerate(labels):
+                # For both regions in the pair, define the indices in that region
+                region1_indices = regions[region1]
+                region2_indices = regions[region2]
 
-            pos_mean = pos_mean / num_indices
-            neg_mean = neg_mean / num_indices
-            pos_avg_matrix[i][j] = pos_mean / 2
-            neg_avg_matrix[i][j] = neg_mean / 2
+                # Define the total number of values that will be counted.
+                num_indices = len(region1_indices) * len(region2_indices)
+                
+                # Set the sum to 0 to start.
+                region_sum = 0
 
-    # Output the plots.
-    # Positive matrix
-    plot_matrix(pos_avg_matrix, f'{labels[name_indx]} [Positive]', "pos")
-    
-    # Positive diagonal values matrix
-    pos_diags = np.diagonal(pos_avg_matrix).reshape((num_regions, 1))
-    plot_matrix(pos_diags, f'{labels[name_indx]} Diagonal [Positive]', "pos_diag", square=False)
-    
-    # Positive matrix with diagonal values = 0
-    np.fill_diagonal(pos_avg_matrix, 0)
-    plot_matrix(pos_avg_matrix, f'{labels[name_indx]} [Positive], Diag = 0', "pos0")
-    
-    # Negative matrix
-    plot_matrix(neg_avg_matrix, f'{labels[name_indx]} [Negative]', "neg")
-    
-    # Negative diagonal values matrix
-    neg_diags = np.diagonal(neg_avg_matrix).reshape((num_regions, 1))
-    plot_matrix(neg_diags, f'{labels[name_indx]} Diagonal [Negative]', "neg_diag", square=False)
-    
-    # Negative matrix with diagonal values = 0
-    np.fill_diagonal(neg_avg_matrix, 0)
-    plot_matrix(neg_avg_matrix, f'{labels[name_indx]} [Negative], Diag = 0', "neg0")
+                # For each pair of region indices, add the predicted B value to the mean for the regions.
+                for index1 in region1_indices:
+                    for index2 in region2_indices:
+                        # If we don't want to include diagonals, here we specify not to add them to the sum
+                        if set_diag_to_zero and index1 == index2:
+                            num_indices -= 1
+                        # Otherwise, add the values to the sum
+                        else:
+                            region_sum += mean_predicted_fc[index1][index2]
+
+                # Calculate the mean
+                mean = region_sum / num_indices
+
+                # Set the (i, j)th value of the avg_matrix to the mean
+                avg_matrix[i][j] = mean
+
+        # Create the average matrix plot
+        self.plot_matrix(avg_matrix, labels[name_indx], output_path, labels )
+
+        # Diagonal values matrix.
+        diags = np.diagonal(avg_matrix).reshape((num_regions, 1))
+        self.plot_matrix(diags, f'{labels[name_indx]} Diagonal', output_path + "diag", labels)
+
+        # Matrix with diagonal values = 0.
+        np.fill_diagonal(avg_matrix, 0)
+        self.plot_matrix(avg_matrix, f'{labels[name_indx]}, Diag = 0', output_path + "0", labels)
+
+    def make_signed_plots(self, regions, name_indx, set_diag_to_zero=False):
+        """
+        Creates resection plots showing only the negative or positive predicted FC for
+        each region/ system.
+        """
+        # Instantiate the output paths.
+        output_path = self.path + 'fig1'
+        mean_predicted_fc = self.get_mean_predicted_fc()
+        
+        # Instantiate this list to declare the order in which to iterate over the regions.
+        labels = ['Thalamus', 'Caudate', 'Putamen', 'Pallidum', 'Accumbens', 'Amygdala',\
+                'Hypocampus','Sommatosensory', 'Visual Cortex', 'DAN', 'SAN', 'Limbic', 'Cont', \
+                'DMN']
+        
+        # Create zero matrices to then edit.
+        num_regions = len(labels)
+        pos_avg_matrix = np.zeros(shape=(num_regions, num_regions))
+        neg_avg_matrix = np.zeros(shape=(num_regions, num_regions))
+
+        # For each region, take the average of positives and negatives and add those values to the corresponding mean matrices.
+        for (i, region1) in enumerate(labels):
+            for (j, region2) in enumerate(labels):
+                # For both regions in the pair, define the indices in that region
+                region1_indices = regions[region1]
+                region2_indices = regions[region2]
+
+                # Define the total number of values that will be counted.
+                num_indices = len(region1_indices) * len(region2_indices)
+
+                # Instantiate the sums at 0 to start
+                pos_sum = 0
+                neg_sum = 0
+
+                # Iterate over the indices of the subregions in region1 and region2
+                for index1 in region1_indices:
+                    for index2 in region2_indices:
+                        # If we don't want to include diagonals, here we specify not to add them to the sums
+                        if set_diag_to_zero and index1 == index2:
+                            num_indices -= 1
+                        # Otherwise, add the negative, positive values to the negative, positive sums
+                        else:
+                            # Add positive values to positive sum
+                            if mean_predicted_fc[index1][index2] > 0:
+                                pos_sum += mean_predicted_fc[index1][index2]
+                            # Add negative values to negative sum
+                            elif mean_predicted_fc[index1][index2] < 0:
+                                neg_sum += mean_predicted_fc[index1][index2]
+
+                # Calculate the mean of positive and negative values
+                pos_mean = pos_sum / num_indices
+                neg_mean = neg_sum / num_indices
+
+                # Set the (i, j)th element of the matrices to the means
+                pos_avg_matrix[i][j] = pos_mean
+                neg_avg_matrix[i][j] = neg_mean
+
+        # Output the plots.
+        # Positive matrix
+        self.plot_matrix(pos_avg_matrix, f'{labels[name_indx]} [Positive]', output_path + "pos", labels)
+        
+        # Positive diagonal values matrix
+        pos_diags = np.diagonal(pos_avg_matrix).reshape((num_regions, 1))
+        self.plot_matrix(pos_diags, f'{labels[name_indx]} Diagonal [Positive]', output_path + "pos_diag", labels, diag_info='pos')
+        
+        # Positive matrix with diagonal values = 0
+        np.fill_diagonal(pos_avg_matrix, 0)
+        self.plot_matrix(pos_avg_matrix, f'{labels[name_indx]} [Positive], Diag = 0', output_path + "pos0", labels)
+        
+        # Negative matrix
+        self.plot_matrix(neg_avg_matrix, f'{labels[name_indx]} [Negative]', output_path + "neg", labels)
+        
+        # Negative diagonal values matrix
+        neg_diags = np.diagonal(neg_avg_matrix).reshape((num_regions, 1))
+        self.plot_matrix(neg_diags, f'{labels[name_indx]} Diagonal [Negative]', output_path + "neg_diag", labels, diag_info='neg')
+        
+        # Negative matrix with diagonal values = 0
+        np.fill_diagonal(neg_avg_matrix, 0)
+        self.plot_matrix(neg_avg_matrix, f'{labels[name_indx]} [Negative], Diag = 0', output_path + "neg0", labels)
 
 
 def main():
@@ -155,9 +201,36 @@ def main():
             'DMN': list(range(53, 65)) + list(range(106, 116))}
     
     # For each region, make the signed and average plots
-    for (name_indx, region) in enumerate(regions):
-        PATH = f"subject_level/virt_resects_log10_SC/{region}/"
-        make_signed_plots(region, regions_dict, name_indx)
-        make_avg_plots(name_indx, regions_dict, PATH)
+    for (name_indx, region_name) in enumerate(regions):
+        # Define the subject level output paths
+        path = f"subject_level_results/standard_SC/sl_X_resects_standard/{region_name}/"
+        path_for_zero_diag = f"subject_level_results/standard_SC/sl_X_resects_standard_diag0/{region_name}/"
+        
+        sl_resector = CreateResectionFigs(path)
+        sl_diag_0_resector = CreateResectionFigs(path_for_zero_diag)
 
-main()
+        # Create the plots keeping the diagonal values
+        sl_resector.make_signed_plots(regions_dict, name_indx)
+        sl_resector.make_avg_plots(name_indx, regions_dict, path)
+
+        # Create the plots with diagonal values set to 0
+        sl_diag_0_resector.make_signed_plots(regions_dict, name_indx, set_diag_to_zero=True)
+        sl_diag_0_resector.make_avg_plots(name_indx, regions_dict, set_diag_to_zero=True)
+
+        # Define group level output paths
+        path = f"group_results/standard_SC/X_resects_standard/{region_name}/"
+        path_for_zero_diag = f"group_results/standard_SC/X_resects_standard_diag0/{region_name}/"
+        
+        gl_resector = CreateResectionFigs(path)
+        gl_diag_0_resector = CreateResectionFigs(path_for_zero_diag)
+
+        # Create the plots keeping the diagonal values
+        gl_resector.make_signed_plots(regions_dict, name_indx)
+        gl_resector.make_avg_plots(name_indx, regions_dict)
+
+        # Create the plots with diagonal values set to 0
+        gl_diag_0_resector.make_signed_plots(regions_dict, name_indx, set_diag_to_zero=True)
+        gl_diag_0_resector.make_avg_plots(name_indx, regions_dict, set_diag_to_zero=True)
+
+if __name__ == '__main__':
+    main()
