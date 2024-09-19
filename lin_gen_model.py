@@ -352,6 +352,7 @@ def main2(subject_id, output_path):
 
     # Calculate significant rules
     sig_rules = subject_model.calc_sig_rules(rules)
+    subject_model.output_sl_sig_rules(sig_rules, subject_id)
 
     # Output predicted FC with significant rules
     sig_predicted_fc = subject_model.calc_predicted_fc(sig_rules)

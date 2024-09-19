@@ -206,7 +206,7 @@ class WriterReader:
         """
         Outputs the significant rules for each subject.
         """
-        self._output_matrix(group_sig_rules, '', f'sig_rules{subject_id}', 'rules')
+        self._output_matrix(group_sig_rules, subject_id, f'sig_rules', 'rules')
 
     def output_sl_rules(self, rules, subject_id):
         """
@@ -248,7 +248,7 @@ class WriterReader:
         """
         Loads the given group level null rules from the output file.
         """
-        path = self.base_path + f'gl/rule_nulls/gl_rule_nulls_{null_num}'
+        path = self.base_path + f'rule_nulls/gl/gl_rule_nulls_{null_num}'
         if not os.path.exists(path):
             print(path)
             print(f'rule null for null_num {null_num} not found.', flush=True)
@@ -260,7 +260,7 @@ class WriterReader:
         """
         Loads the given subject level null rules from the output file.
         """
-        path = self.base_path + f'sl/rule_nulls/{subject_id}/rule_nulls_{null_num}'
+        path = self.base_path + f'rule_nulls/sl/{subject_id}/rule_nulls_{null_num}'
         if not os.path.exists(path):
             print(f'rule null for subject_id{subject_id} \
                   null_num {null_num} not found.', flush=True)

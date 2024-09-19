@@ -216,7 +216,7 @@ def main():
         # Create the plots with diagonal values set to 0
         sl_diag_0_resector.make_signed_plots(regions_dict, name_indx, set_diag_to_zero=True)
         sl_diag_0_resector.make_avg_plots(name_indx, regions_dict, set_diag_to_zero=True)
-
+        """
         # Define group level output paths
         path = f"group_results/standard_SC/X_resects_standard/{region_name}/"
         path_for_zero_diag = f"group_results/standard_SC/X_resects_standard_diag0/{region_name}/"
@@ -231,6 +231,6 @@ def main():
         # Create the plots with diagonal values set to 0
         gl_diag_0_resector.make_signed_plots(regions_dict, name_indx, set_diag_to_zero=True)
         gl_diag_0_resector.make_avg_plots(name_indx, regions_dict, set_diag_to_zero=True)
-
+        """
 if __name__ == '__main__':
     main()

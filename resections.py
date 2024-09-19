@@ -56,13 +56,13 @@ def resection_output(predicted_fc_stack, path, resected_rules=None, histograms=F
 
     # Outputs mean predicted FC heatmap
     mean_predicted_fc = np.mean(predicted_fc_stack, axis=0)
-    heatmaps(mean_predicted_fc, path + 'mean_predB', type='predfc')
+    heatmaps(mean_predicted_fc, path + 'mean_predB', 'predfc')
     np.savetxt(path + 'mean_predB', mean_predicted_fc)
 
     # If resected_rules is provided, output the heatmap
     if resected_rules:
         # Outputs resected rules heatmap
-        heatmaps(resected_rules, path + 'resected_rules', type='rules')
+        heatmaps(resected_rules, path + 'resected_rules', 'rules')
 
 def group_level_resections(results_dir, out_dir, regions_dict, resect_rules=False):
     """
@@ -116,7 +116,7 @@ def subject_level_predictions(results_dir, out_dir, regions_dict, resect_rules=F
     the rule set.
     """
     # Iterate over each subjects' individually fit rule set.
-    subject_ids = [num + 1 for num in range(50)]
+    subject_ids = [1, 2, 3, 5, 6, 7, 8, 10, 11, 13, 14, 15, 16, 17, 19, 20, 22, 23, 24, 25, 26, 27, 28, 29]
 
     # Iterate over each of the regions.
     for (region, indxs) in regions_dict.items():
@@ -173,8 +173,8 @@ def main():
     }
 
     # These paths need to be set!!
-    results_dir = 'subject_level_output_standard_lasso/matrices/'
-    outdir = 'sl_resects_standard/'
+    results_dir = 'pre_resection/matrices/'
+    outdir = 'sl_resects/'
 
     subject_level_predictions(results_dir, outdir, regions, resect_rules=True)
     #group_level_resections(RESULTS_DIR, OUT_DIR, regions)
