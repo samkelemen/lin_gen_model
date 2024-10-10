@@ -332,7 +332,7 @@ class SubjectLevelModel(Subject, WriterReader):
         rules = self.inverse_symmetric_modification(best_model.coef_)
         return best_alpha, rules
 
-def main2(subject_id, output_path):
+def train_sl(subject_id, output_path):
     # Instantiate the subject model.
     subject_model = SubjectLevelModel(subject_id, output_path, tumor_ds=True, pre_resection=False)
 
@@ -362,7 +362,7 @@ def main2(subject_id, output_path):
     subject_model.output_fc(subject_model.fc_matrix, subject_model.subject_id)
     subject_model.output_sc(subject_model.sc_matrix, subject_model.subject_id)
 
-def main():
+def train_gl():
     """
     Train the group and output the results.
     """
@@ -389,4 +389,5 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    train_gl()
+    train_sl()
